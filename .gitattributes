@@ -1,0 +1,29 @@
+# Enforce LF line endings for scripts and files that run inside Linux containers
+# This prevents Windows Git from converting LF → CRLF on checkout
+
+# Maven wrapper scripts MUST stay LF (they break in Docker if CRLF)
+*/mvnw        text eol=lf
+*/mvnw.cmd    text eol=crlf
+
+# Shell scripts → always LF
+*.sh          text eol=lf
+
+# All other text files: normalize to LF
+*.java        text eol=lf
+*.xml         text eol=lf
+*.properties  text eol=lf
+*.yml         text eol=lf
+*.yaml        text eol=lf
+*.ts          text eol=lf
+*.tsx         text eol=lf
+*.js          text eol=lf
+*.json        text eol=lf
+*.md          text eol=lf
+Dockerfile*   text eol=lf
+.env*         text eol=lf
+
+# Binary files — no line ending conversion
+*.png         binary
+*.jpg         binary
+*.jar         binary
+*.class       binary

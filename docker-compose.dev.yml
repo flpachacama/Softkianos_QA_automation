@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sofkian-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sofkianos}
+      POSTGRES_USER: ${POSTGRES_USER:-sofkianos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sofkianos_pass}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - sofkian-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sofkianos} -d ${POSTGRES_DB:-sofkianos}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: sofkian-rabbitmq
@@ -39,8 +59,14 @@ services:
       - "8081:8081"
     environment:
       SPRING_RABBITMQ_HOST: sofkian-rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:postgresql://sofkian-postgres:5432/${POSTGRES_DB:-sofkianos}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sofkianos}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-sofkianos_pass}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - sofkian-net
@@ -52,6 +78,19 @@ services:
       - "5173:5173"
     depends_on:
       - producer-api
+    networks:
+      - sofkian-net
+
+  adminer:
+    image: adminer:latest
+    container_name: sofkian-adminer
+    ports:
+      - "8090:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: sofkian-postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - sofkian-net
 
@@ -68,3 +107,6 @@ services:
 networks:
   sofkian-net:
     driver: bridge
+
+volumes:
+  postgres-data:
