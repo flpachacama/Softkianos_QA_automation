@@ -1,6 +1,7 @@
 package automation.steps;
 
-import automation.pages.KudoPage;
+import automation.pages.KudoFormPage;
+import automation.pages.LandingPage;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -14,16 +15,20 @@ import java.util.Map;
 public class KudoSteps {
 
     @Steps
-    private KudoPage kudoPage;
+    private LandingPage landingPage;
+
+    @Steps
+    private KudoFormPage kudoFormPage;
 
     @Given("the user opens SofkianOS landing page")
     public void theUserOpensSofkianOSLandingPage() {
-        kudoPage.openLandingPage();
+        landingPage.openLandingPage();
     }
 
     @When("the user navigates to the Kudos form")
     public void theUserNavigatesToTheKudosForm() {
-        kudoPage.goToKudosForm();
+        landingPage.goToKudosForm();
+        kudoFormPage.waitUntilFormIsVisible();
     }
 
     @When("the user fills the kudo form with:")
@@ -32,15 +37,15 @@ public class KudoSteps {
         List<Map<String, String>> rows = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = rows.get(0);
 
-        kudoPage.selectFromUser(data.get("from"));
-        kudoPage.selectToUser(data.get("to"));
-        kudoPage.selectCategory(data.get("category"));
-        kudoPage.enterMessage(data.get("message"));
+        kudoFormPage.selectFromUser(data.get("from"));
+        kudoFormPage.selectToUser(data.get("to"));
+        kudoFormPage.selectCategory(data.get("category"));
+        kudoFormPage.enterMessage(data.get("message"));
     }
 
     @When("the user submits the kudo using the slider")
     public void theUserSubmitsTheKudoUsingTheSlider() {
-        kudoPage.submitUsingSlider();
+        kudoFormPage.submitUsingSlider();
     }
 
     @Then("the user should see a successful kudo submission message")
@@ -48,7 +53,7 @@ public class KudoSteps {
 
         Assert.assertTrue(
                 "Expected success toast to confirm the async request was accepted",
-                kudoPage.isSuccessToastVisible()
+                kudoFormPage.isSuccessToastVisible()
         );
     }
 }

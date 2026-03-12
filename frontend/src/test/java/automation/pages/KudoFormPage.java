@@ -12,10 +12,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
-public class KudoPage extends PageObject {
-
-    @FindBy(xpath = "//button[normalize-space()='Acceder']")
-    private WebElementFacade accessButton;
+public class KudoFormPage extends PageObject {
 
     @FindBy(xpath = "//h2[contains(.,'Reconoce a un')]")
     private WebElementFacade kudosTitle;
@@ -41,12 +38,7 @@ public class KudoPage extends PageObject {
     @FindBy(xpath = "//*[contains(text(),'Kudo enviado')]")
     private WebElementFacade successToast;
 
-    public void openLandingPage() {
-        openUrl("http://localhost:5173");
-    }
-
-    public void goToKudosForm() {
-        accessButton.waitUntilClickable().click();
+    public void waitUntilFormIsVisible() {
         kudosTitle.waitUntilVisible();
     }
 
