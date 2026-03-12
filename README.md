@@ -42,7 +42,7 @@ SofkianOS operates as a distributed system where Kudos flow through multiple bou
 3. **Producer API (Spring Boot)** → Validates and publishes event to RabbitMQ
 4. **RabbitMQ (Broker/Store)** → Asynchronous decoupling, temporary storage
 5. **Consumer Worker (Spring Boot Listener)** → Processes heavy gamification logic
-6. **Database (PostgreSQL)** → Final persistence (future)
+6. **Database (PostgreSQL in Docker)** → Final persistence for processed Kudos
 
 **Key Benefits**:
 - **Non-Blocking API**: Producer responds instantly (202), processing occurs asynchronously
@@ -272,10 +272,12 @@ docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 **Services:**
+- PostgreSQL — Port 5432
 - Frontend (React) — http://localhost:5173
 - Producer API — http://localhost:8082
 - Consumer Worker — http://localhost:8081
 - RabbitMQ — http://localhost:15672
+- Adminer (DB UI) — http://localhost:8090
 - Dozzle (Log Viewer) — http://localhost:8888
 
 #### Production Configuration (`docker-compose.prod.yml`)
@@ -287,9 +289,11 @@ docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 **Services:**
+- PostgreSQL — Port 5432
 - Producer API — Port 8082
 - Consumer Worker — Port 8081
 - RabbitMQ — Ports 5672, 15672
+- Adminer (DB UI) — Port 8090
 - Dozzle (Log Viewer) — Port 8888
 
 **Frontend:** Deployed separately on **Vercel** (https://sofkianos-mvp.vercel.app/)
@@ -302,7 +306,10 @@ docker compose -f docker-compose.prod.yml up -d --build
    cp .env.example .env
    ```
 
-   Default RabbitMQ credentials: `guest` / `guest` (local only).
+   Default local values:
+   - RabbitMQ: `guest` / `guest`
+   - PostgreSQL DB: `sofkianos`
+   - PostgreSQL user/password: `sofkianos` / `sofkianos_pass`
 
 2. **Start the development stack**:
 
@@ -312,10 +319,12 @@ docker compose -f docker-compose.prod.yml up -d --build
 
    This command:
    - Builds all service images (Frontend, Producer API, Consumer Worker)
+   - Starts PostgreSQL with health checks and persistent volume
    - Starts RabbitMQ with health checks
    - Starts Producer API (waits for RabbitMQ to be healthy)
-   - Starts Consumer Worker (waits for RabbitMQ to be healthy)
+   - Starts Consumer Worker (waits for RabbitMQ and PostgreSQL to be healthy)
    - Starts Frontend (waits for Producer API to be available)
+   - Starts Adminer for database inspection
    - Starts Dozzle log viewer
 
 3. **Verify services**:
@@ -323,6 +332,8 @@ docker compose -f docker-compose.prod.yml up -d --build
    - **Frontend**: http://localhost:5173
    - **Producer API**: http://localhost:8082/api/v1/kudos (POST)
    - **Consumer Worker**: http://localhost:8081/api/v1/health
+   - **PostgreSQL**: localhost:5432
+   - **Adminer**: http://localhost:8090
    - **RabbitMQ Management**: http://localhost:15672 (guest/guest)
    - **Dozzle Logs**: http://localhost:8888
 
@@ -343,14 +354,18 @@ docker compose -f docker-compose.prod.yml up -d --build
 The orchestration ensures the correct startup order:
 
 **Development** (`docker-compose.dev.yml`):
+- PostgreSQL starts first with health checks
 - RabbitMQ starts first with health checks
 - Producer API and Consumer Worker wait for RabbitMQ to be healthy
+- Consumer Worker also waits for PostgreSQL to be healthy
 - Frontend waits for Producer API to be available
 - All services communicate via the `sofkian-net` bridge network
 
 **Production** (`docker-compose.prod.yml`):
+- PostgreSQL starts first with health checks
 - RabbitMQ starts first with health checks
-- Producer API and Consumer Worker wait for RabbitMQ to be healthy
+- Producer API waits for RabbitMQ to be healthy
+- Consumer Worker waits for RabbitMQ and PostgreSQL to be healthy
 - Frontend is hosted separately on Vercel
 - All services communicate via the `sofkian-net` bridge network
 
@@ -364,7 +379,7 @@ When using `docker-compose.dev.yml`:
 4. Verify Producer API logs (Dozzle): should show HTTP 202 response
 5. Verify RabbitMQ Management UI: check message in `kudos.queue`
 6. Verify Consumer Worker logs (Dozzle): should show message processing
-7. Verify that Consumer processed the Kudo (check database/logs)
+7. Verify persistence in PostgreSQL (using Adminer or `psql`)
 
 ---
 
@@ -375,6 +390,7 @@ All services run on the Docker bridge network `sofkian-net`:
 - **Frontend** → **Producer API**: HTTP (port 8082)
 - **Producer API** → **RabbitMQ**: AMQP (port 5672)
 - **Consumer Worker** → **RabbitMQ**: AMQP (port 5672)
+- **Consumer Worker** → **PostgreSQL**: JDBC (port 5432)
 - **External Access**: Ports exposed via Docker port mappings
 
 ---
@@ -383,6 +399,7 @@ All services run on the Docker bridge network `sofkian-net`:
 
 - **Dozzle**: Real-time container logs at http://localhost:8888
 - **RabbitMQ Management UI**: Queue monitoring, message inspection at http://localhost:15672
+- **Adminer**: PostgreSQL inspection UI at http://localhost:8090
 - **Health Endpoints**:
   - Producer API: `GET http://localhost:8082/health`
   - Consumer Worker: `GET http://localhost:8081/api/v1/health`
