@@ -383,6 +383,25 @@ When using `docker-compose.dev.yml`:
 
 ---
 
+## Pruebas automaticas
+
+Esta guia resume como ejecutar pruebas automaticas por servicio desde la raiz del repositorio.
+
+| Servicio | Tipo | Comando (Windows) | Reporte / salida |
+|----------|------|-------------------|------------------|
+| `frontend` | Unitarias y componentes (Vitest) | `cd frontend && npm run test:unit` | Consola Vitest |
+| `frontend` | E2E UI (Playwright) | `cd frontend && npx playwright test tests/kudo-flow.spec.ts` | Consola Playwright |
+| `frontend` | E2E funcional (Serenity + Cucumber) | `cd frontend && gradlew clean test aggregate` | `frontend/target/site/serenity/index.html` |
+| `producer-api` | Tests backend (Maven) | `cd producer-api && mvnw.cmd test` | `producer-api/target/` |
+| `consumer-worker` | Tests backend (Maven) | `cd consumer-worker && mvnw.cmd test` | `consumer-worker/target/` |
+
+Notas rapidas:
+
+- Para pruebas E2E del frontend, levanta la app en `http://localhost:5173` antes de ejecutar Playwright o Serenity.
+- El detalle de arquitectura de pruebas del frontend esta documentado en `frontend/README.md`.
+
+---
+
 ## Network Architecture
 
 All services run on the Docker bridge network `sofkian-net`:

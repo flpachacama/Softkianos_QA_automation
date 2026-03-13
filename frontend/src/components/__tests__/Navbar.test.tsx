@@ -1,15 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Navbar } from '../Navbar';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useAppStore } from '../../store/appStore';
+import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-
-// Mock the store
-vi.mock('../../store/appStore', () => ({
-  useAppStore: vi.fn(),
-}));
-
-const mockToggleAppView = vi.fn();
 
 describe('Navbar', () => {
   it('renders the logo', () => {
@@ -43,6 +35,18 @@ describe('Navbar', () => {
     );
     
     expect(screen.queryByText('Cómo funciona')).not.toBeInTheDocument();
+    expect(screen.getByText('Volver')).toBeInTheDocument();
+  });
+
+  it('shows app navigation links in history view', () => {
+    render(
+      <MemoryRouter initialEntries={['/kudos/history']}>
+        <Navbar />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Enviar Kudo')).toBeInTheDocument();
+    expect(screen.getByText('Historial')).toBeInTheDocument();
     expect(screen.getByText('Volver')).toBeInTheDocument();
   });
 });

@@ -11,7 +11,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isAppView = location.pathname === '/kudos';
+  const isAppView = location.pathname.startsWith('/kudos');
+  const isHistoryView = location.pathname === '/kudos/history';
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -45,6 +46,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     } else {
       navigate('/kudos');
     }
+    setMobileMenuOpen(false);
+  };
+
+  const handleNavigateToKudosForm = () => {
+    navigate('/kudos');
+    setMobileMenuOpen(false);
+  };
+
+  const handleNavigateToHistory = () => {
+    navigate('/kudos/history');
     setMobileMenuOpen(false);
   };
 
@@ -91,6 +102,36 @@ export const Navbar: React.FC<NavbarProps> = ({
             </>
           )}
 
+          {isAppView && (
+            <>
+              <button
+                onClick={handleNavigateToKudosForm}
+                className={`px-4 transition-colors ${
+                  !isHistoryView
+                    ? 'text-white font-semibold'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Enviar Kudo
+              </button>
+
+              <div className="h-5 w-px bg-white/10" />
+
+              <button
+                onClick={handleNavigateToHistory}
+                className={`px-4 transition-colors ${
+                  isHistoryView
+                    ? 'text-white font-semibold'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Historial
+              </button>
+
+              <div className="h-5 w-px bg-white/10" />
+            </>
+          )}
+
           <button
             onClick={handleToggleView}
             className="
@@ -127,6 +168,31 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="text-left text-zinc-400 hover:text-white"
                 >
                   Tecnología
+                </button>
+              </>
+            )}
+
+            {isAppView && (
+              <>
+                <button
+                  onClick={handleNavigateToKudosForm}
+                  className={`text-left ${
+                    !isHistoryView
+                      ? 'text-white font-semibold'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Enviar Kudo
+                </button>
+                <button
+                  onClick={handleNavigateToHistory}
+                  className={`text-left ${
+                    isHistoryView
+                      ? 'text-white font-semibold'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Historial
                 </button>
               </>
             )}

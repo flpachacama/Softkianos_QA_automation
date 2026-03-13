@@ -1,5 +1,6 @@
 package automation.steps;
 
+import automation.pages.KudoHistoryPage;
 import automation.pages.KudoFormPage;
 import automation.pages.LandingPage;
 import io.cucumber.datatable.DataTable;
@@ -20,6 +21,11 @@ public class KudoSteps {
     @Steps
     private KudoFormPage kudoFormPage;
 
+    @Steps
+    private KudoHistoryPage kudoHistoryPage;
+
+    private String sentKudoMessage;
+
     @Given("the user opens SofkianOS landing page")
     public void theUserOpensSofkianOSLandingPage() {
         landingPage.openLandingPage();
@@ -36,6 +42,7 @@ public class KudoSteps {
 
         List<Map<String, String>> rows = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = rows.get(0);
+        sentKudoMessage = data.get("message");
 
         kudoFormPage.selectFromUser(data.get("from"));
         kudoFormPage.selectToUser(data.get("to"));
@@ -54,6 +61,19 @@ public class KudoSteps {
         Assert.assertTrue(
                 "Expected success toast to confirm the async request was accepted",
                 kudoFormPage.isSuccessToastVisible()
+        );
+    }
+
+    @When("the user navigates to the kudos history")
+    public void theUserNavigatesToTheKudosHistory() {
+        kudoHistoryPage.openHistory();
+    }
+
+    @Then("the user should see the sent kudo in the kudos history")
+    public void theUserShouldSeeTheSentKudoInTheKudosHistory() {
+        Assert.assertTrue(
+                "Expected sent kudo message to appear in history: " + sentKudoMessage,
+                kudoHistoryPage.isKudoVisible(sentKudoMessage)
         );
     }
 }
