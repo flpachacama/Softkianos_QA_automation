@@ -94,15 +94,102 @@ Kudo submission form: From/To dropdowns, category (with points), message textare
 
 ---
 
-## 5. Prerequisites
+## 5. Pruebas E2E (Serenity + Cucumber)
+
+Esta sección documenta las pruebas end-to-end del frontend enfocadas en el flujo de envío de kudos.
+
+### 5.1 Tecnologias Utilizadas
+
+- Java
+- Serenity BDD
+- Serenity Rest
+- Cucumber
+- Screenplay Pattern
+- Gradle (actual en este modulo) o Maven
+
+### 5.2 Arquitectura del Proyecto
+
+Las pruebas siguen el enfoque de **Screenplay Pattern**, donde cada actor ejecuta tareas y valida resultados a traves de interacciones con la UI.  
+En este proyecto, el flujo se expresa con **Cucumber** (feature + step definitions), y Serenity orquesta la ejecucion y la evidencia.  
+Actualmente se usa una implementacion basada en capas (`steps`, `pages`, `runner`) alineada con Serenity para mantener legibilidad y mantenibilidad.
+
+### 5.3 Estructura del Proyecto
+
+Estructura de referencia para una suite E2E basada en Screenplay:
+
+```text
+automation
+ ├── hooks
+ ├── questions
+ ├── runners
+ ├── stepdefinitions
+ ├── tasks
+ ├── ui
+ └── util
+```
+
+- `hooks`: configuraciones transversales (setup/teardown, contexto compartido, inicializacion del actor).
+- `questions`: validaciones y consultas del estado de la aplicacion visibles para el actor.
+- `runners`: clases de ejecucion de Cucumber/Serenity (entry point de la suite).
+- `stepdefinitions`: mapeo entre pasos Gherkin y acciones de automatizacion.
+- `tasks`: acciones de negocio reutilizables que ejecuta el actor.
+- `ui`: localizadores y mapeos de elementos visuales (targets).
+- `util`: utilidades de soporte (datos, helpers, conversiones, constantes comunes).
+
+### 5.4 Flujo de Prueba Automatizado
+
+1. El `runner` inicia la ejecucion de Cucumber con Serenity.
+2. El escenario Gherkin define el comportamiento esperado (Given/When/Then).
+3. Los `stepdefinitions` traducen cada paso a tareas/acciones sobre la interfaz.
+4. El actor interactua con la aplicacion (navega, completa formulario, envia).
+5. Las validaciones comprueban el resultado esperado (por ejemplo, mensaje de envio exitoso).
+6. Serenity consolida evidencia y resultados en reportes automaticos.
+
+### 5.5 Requisitos para ejecutar el proyecto
+
+- Java 11 o superior
+- Maven o Gradle instalado
+- Git
+
+### 5.6 Ejecutar las pruebas
+
+Si usa **Gradle**:
+
+```bash
+./gradlew clean test
+```
+
+En **Windows**:
+
+```bat
+gradlew clean test
+```
+
+Si usa **Maven**:
+
+```bash
+mvn clean verify
+```
+
+> Nota: este modulo frontend esta configurado actualmente con `build.gradle` para la automatizacion E2E.
+
+### 5.7 Reportes de Serenity
+
+Serenity genera reportes automaticamente despues de ejecutar las pruebas, incluyendo escenarios, pasos, evidencias y estado final.
+
+Ruta del reporte:
+
+`target/site/serenity/index.html`
+
+## 6. Prerequisites
 
 - **Node.js** LTS (e.g. 20.x)
 - **npm** (or equivalent)
 - **Docker** and **Docker Compose** (for containerized run)
 
-## 6. How to Run
+## 7. How to Run
 
-### 6.1 Local (development)
+### 7.1 Local (development)
 
 ```bash
 npm install
@@ -111,7 +198,7 @@ npm run dev
 
 App runs at `http://localhost:5173`. Vite proxies `/api` to the backend (see `vite.config.ts`; default target `http://localhost:8082`).
 
-### 6.2 Docker
+### 7.2 Docker
 
 From the frontend directory:
 
@@ -122,13 +209,13 @@ docker run -p 5173:5173 --network <your-network> sofkianos-frontend
 
 Run the frontend container on the same Docker network as the Producer (e.g. `sofkianos-producer`) so Nginx can proxy `/api` to the backend.
 
-## 7. Verification
+## 8. Verification
 
 - **Landing:** Open `http://localhost:5173` — hero, about, how-it-works, tech, footer.
 - **Form:** Use “Explorar Sistema” / “Launch App” — Kudo form with From/To, Category, Message.
 - **API:** Submit a valid Kudo; expect HTTP 202 and a success toast. In DevTools: `POST /api/v1/kudos` → 202.
 
-## 8. Assets
+## 9. Assets
 
 Evidence images use the filenames referenced in section 4. Ensure the folder exists:
 
@@ -137,3 +224,7 @@ mkdir -p assets
 ```
 
 Then add: `evidence-landing-hero.png`, `evidence-how-it-works.png`, `evidence-tech-stack.png`, `evidence-kudo-form.png`.
+
+## 10. Autor
+
+Equipo QA / Automatizacion - SofkianOS.
