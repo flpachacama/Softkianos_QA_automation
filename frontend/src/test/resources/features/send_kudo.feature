@@ -11,3 +11,5 @@ Feature: Send a kudo from the web application
       | Christopher Pallo   | Santiago              | Teamwork   | Gracias por tu apoyo en la entrega del sprint |
     And the user submits the kudo using the slider
     Then the user should see a successful kudo submission message
+    When the user navigates to the kudos history
+    Then the user should see the sent kudo in the kudos history

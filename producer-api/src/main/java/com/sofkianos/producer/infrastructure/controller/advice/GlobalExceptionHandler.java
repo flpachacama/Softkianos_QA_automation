@@ -1,6 +1,7 @@
 package com.sofkianos.producer.infrastructure.controller.advice;
 
 import com.sofkianos.producer.exception.KudoPublishingException;
+import com.sofkianos.producer.exception.KudoQueryException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // ── 503 Service Unavailable — messaging infrastructure failure ──────
+    // -- 503 Service Unavailable - messaging infrastructure failure ---------
     @ExceptionHandler(KudoPublishingException.class)
     public ResponseEntity<Map<String, Object>> handleKudoPublishingException(
             KudoPublishingException ex) {
@@ -41,7 +42,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(body);
     }
 
-    // ── 400 Bad Request — Bean Validation failures ──────────────────────
+    // -- 503 Service Unavailable - history query dependency failure ---------
+    @ExceptionHandler(KudoQueryException.class)
+    public ResponseEntity<Map<String, Object>> handleKudoQueryException(
+            KudoQueryException ex) {
+
+        log.error("History query failure: {}", ex.getMessage(), ex);
+
+        Map<String, Object> body = errorBody(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Kudos history is temporarily unavailable. Please try again later.",
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(body);
+    }
+
+    // -- 400 Bad Request - Bean Validation failures -------------------------
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(
             MethodArgumentNotValidException ex) {
@@ -61,7 +78,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
-    // ── 404 Not Found — static resource requests (favicon, /, etc.) ────
+    // -- 404 Not Found - static resource requests (favicon, /, etc.) -------
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoResourceFound(
             NoResourceFoundException ex) {
@@ -77,7 +94,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
-    // ── 500 Internal Server Error — catch-all ───────────────────────────
+    // -- 500 Internal Server Error - catch-all ------------------------------
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
 
@@ -92,7 +109,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
-    // ── Helper ──────────────────────────────────────────────────────────
+    // -- Helper --------------------------------------------------------------
     private Map<String, Object> errorBody(HttpStatus status, String error, String detail) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now().toString());

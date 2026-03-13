@@ -2,6 +2,8 @@ package com.sofkianos.consumer.domain.ports.out;
 
 import com.sofkianos.consumer.entity.Kudo;
 
+import java.util.List;
+
 /**
  * Output Port — defines the contract for persisting a {@link Kudo} entity.
  * <p>
@@ -21,4 +23,9 @@ public interface KudoPersistencePort {
      * @return the persisted entity
      */
     Kudo save(Kudo kudo);
+
+    /**
+     * Returns all persisted kudos sorted by most recent first.
+     */
+    List<Kudo> findAllOrderByCreatedAtDesc();
 }

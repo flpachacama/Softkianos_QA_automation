@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Domain Service — maps a typed {@link KudoEvent} to a {@link Kudo} entity
  * and persists it through the {@link KudoPersistencePort} abstraction.
@@ -45,5 +47,10 @@ public class KudoServiceImpl implements KudoService {
 
         log.info("Kudo persisted successfully: from={}, to={}, category={}",
                 kudo.getFromUser(), kudo.getToUser(), kudo.getCategory());
+    }
+
+    @Override
+    public List<Kudo> getKudosHistory() {
+        return persistencePort.findAllOrderByCreatedAtDesc();
     }
 }

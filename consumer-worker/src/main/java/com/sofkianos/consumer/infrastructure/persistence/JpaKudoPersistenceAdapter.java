@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * Infrastructure Adapter that implements {@link KudoPersistencePort}
  * using the Spring Data {@link KudoRepository}.
@@ -31,5 +33,10 @@ public class JpaKudoPersistenceAdapter implements KudoPersistencePort {
 
         log.debug("Kudo persisted with id={}", saved.getId());
         return saved;
+    }
+
+    @Override
+    public List<Kudo> findAllOrderByCreatedAtDesc() {
+        return kudoRepository.findAllByOrderByCreatedAtDesc();
     }
 }

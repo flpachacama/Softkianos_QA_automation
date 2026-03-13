@@ -1,19 +1,17 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: sofkian-postgres
+    container_name: sofkian-postgres-v2
     ports:
-      - "5432:5432"
+      - "5434:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-sofkianos}
       POSTGRES_USER: ${POSTGRES_USER:-sofkianos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sofkianos_pass}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data-v2:/var/lib/postgresql/data
     networks:
-      - sofkian-net
+      - sofkian-net-v2
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sofkianos} -d ${POSTGRES_DB:-sofkianos}" ]
       interval: 10s
@@ -23,15 +21,15 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: sofkian-rabbitmq
+    container_name: sofkian-rabbitmq-v2
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5674:5672"
+      - "15674:15672"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
     networks:
-      - sofkian-net
+      - sofkian-net-v2
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 10s
@@ -41,25 +39,28 @@ services:
 
   producer-api:
     build: ./producer-api
-    container_name: sofkianos-producer
+    container_name: sofkianos-producer-v2
     ports:
-      - "8082:8082"
+      - "8282:8082"
     environment:
-      SPRING_RABBITMQ_HOST: sofkian-rabbitmq
+      SPRING_RABBITMQ_HOST: rabbitmq
+      APP_KUDOS_HISTORY_URL: http://consumer-worker:8081/api/v1/kudos
     depends_on:
       rabbitmq:
         condition: service_healthy
     networks:
-      - sofkian-net
+      sofkian-net-v2:
+        aliases:
+          - sofkianos-producer
 
   consumer-worker:
     build: ./consumer-worker
-    container_name: sofkianos-consumer
+    container_name: sofkianos-consumer-v2
     ports:
-      - "8081:8081"
+      - "8281:8081"
     environment:
-      SPRING_RABBITMQ_HOST: sofkian-rabbitmq
-      SPRING_DATASOURCE_URL: jdbc:postgresql://sofkian-postgres:5432/${POSTGRES_DB:-sofkianos}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-sofkianos}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sofkianos}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-sofkianos_pass}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -69,21 +70,31 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - sofkian-net
+      - sofkian-net-v2
 
   log-viewer:
     image: amir20/dozzle:latest
-    container_name: sofkianos-log-viewer
+    container_name: sofkianos-log-viewer-v2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "8888:8080"
+      - "8988:8080"
     networks:
-      - sofkian-net
+      - sofkian-net-v2
+
+  frontend:
+    build: ./frontend
+    container_name: sofkianos-frontend-v2
+    ports:
+      - "3000:5173"
+    depends_on:
+      - producer-api
+    networks:
+      - sofkian-net-v2
 
 networks:
-  sofkian-net:
+  sofkian-net-v2:
     driver: bridge
 
 volumes:
-  postgres-data:
+  postgres-data-v2:
